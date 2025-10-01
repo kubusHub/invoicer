@@ -1,0 +1,17 @@
+- [x] Add back button to MonthlySummary.vue
+- [x] Add back button to InvoiceEdit.vue
+- [x] Change Preview, Download, Edit buttons to icons in InvoiceTable.vue
+- [x] Change Preview, Download buttons to icons in InvoiceEdit.vue
+- [x] Remove bulk actions from InvoiceTable.vue
+- [x] Change all back buttons to icons
+- [x] Update monthly summaries to show total netto, total brutto, total paid brutto, total unpaid brutto
+- [ ] Implement advanced filtering and sorting with saved presets
+- [ ] Add invoice creation form with validation and draft support
+- [x] Add export to PDF and detailed reporting with charts
+- [ ] Implement bulk actions for invoices (delete, export)
+- [ ] Ensure full mobile responsiveness and UI/UX improvements
+- [ ] Add audit logs for invoice changes using audit_logs table
+- [ ] Add automated payment reminders using payment_reminders table
+- [ ] Add reports generation and storage using reports table
+- [ ] Add bulk actions tracking using bulk_actions table
+- [ ] Write comprehensive tests covering all new features and UI flows
