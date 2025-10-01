@@ -1,6 +1,5 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import { supabase } from '../supabase'
 import Dashboard from '../components/Dashboard.vue'
 import InvoiceEdit from '../components/InvoiceEdit.vue'
 import Login from '../components/Login.vue'
@@ -25,8 +24,13 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  // For single-user app, no auth guard needed - always allow access
-  next()
+  const sessionExpires = sessionStorage.getItem('session_expires')
+  const isLoggedIn = sessionExpires && parseInt(sessionExpires) > Date.now()
+  if (!isLoggedIn && to.name !== 'Login') {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router

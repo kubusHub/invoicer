@@ -1,56 +1,60 @@
 <!-- src/components/Login.vue -->
 <template>
-  <div>
-    <h2>Login</h2>
-    <form @submit.prevent="onSubmit">
-      <div>
-        <label>Email</label><br />
-        <input v-model="email" type="email" required />
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow">
+          <div class="card-body">
+            <h2 class="card-title text-center text-success mb-4">
+              <i class="bi bi-shield-lock"></i> Access Dashboard
+            </h2>
+            <form @submit.prevent="onSubmit">
+              <div class="mb-3">
+                <label for="accessCode" class="form-label">
+                  <i class="bi bi-key"></i> Access Code
+                </label>
+                <input
+                  id="accessCode"
+                  v-model="accessCode"
+                  type="password"
+                  class="form-control"
+                  placeholder="Enter access code"
+                  required
+                />
+              </div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-success">
+                  <i class="bi bi-box-arrow-in-right"></i> Login
+                </button>
+              </div>
+            </form>
+            <div v-if="err" class="alert alert-danger mt-3" role="alert">
+              <i class="bi bi-exclamation-triangle"></i> {{ err }}
+            </div>
+          </div>
+        </div>
       </div>
-      <div style="margin-top: 8px">
-        <label>Password</label><br />
-        <input v-model="password" type="password" required />
-      </div>
-      <div style="margin-top: 12px">
-        <button type="submit">Sign in</button>
-      </div>
-    </form>
-    <p v-if="err" style="color: crimson">{{ err }}</p>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { signIn } from '../api'
 import { useRouter } from 'vue-router'
 
-const email = ref('')
-const password = ref('')
+const accessCode = ref('')
 const err = ref(null)
 const router = useRouter()
 
-async function onSubmit() {
+function onSubmit() {
   err.value = null
-  try {
-    const res = await signIn(email.value, password.value)
-    if (res.error) {
-      let errorMsg = 'Login failed'
-      if (res.error.message.includes('Invalid login credentials')) {
-        errorMsg = 'Invalid email or password. Please check your credentials.'
-      } else if (res.error.message.includes('User not found')) {
-        errorMsg = 'User not registered. Please sign up or check your email.'
-      } else if (res.error.message.includes('Invalid password')) {
-        errorMsg = 'Incorrect password. Please try again.'
-      } else {
-        errorMsg = res.error.message
-      }
-      err.value = errorMsg
-      return
-    }
-    // On success route to dashboard
+  const hardcodedCode = '777666555444333222111'
+  if (accessCode.value === hardcodedCode) {
+    const expires = Date.now() + 30 * 60 * 1000 // 30 minutes
+    sessionStorage.setItem('session_expires', expires.toString())
     router.push('/')
-  } catch (e) {
-    err.value = e.message || 'Login error. Please try again.'
+  } else {
+    err.value = 'Invalid access code. Please try again.'
   }
 }
 </script>

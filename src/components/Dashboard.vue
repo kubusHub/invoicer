@@ -13,7 +13,7 @@
           Reports
         </button>
         <button class="btn btn-outline-secondary me-2" @click="exportPDF">Export to PDF</button>
-        <button class="btn btn-success" @click="exportCSV">Export to CSV</button>
+        <button class="btn btn-outline-danger me-2" @click="logout">Logout</button>
       </div>
     </div>
 
@@ -49,7 +49,9 @@
         <Filters @apply="onApplyFiltersModal" />
         <div class="text-end mt-3">
           <button type="button" class="btn btn-secondary me-2" @click="resetFilters">Reset</button>
-          <button type="button" class="btn btn-success" @click="applyModalFilters">Apply Filters</button>
+          <button type="button" class="btn btn-success" @click="applyModalFilters">
+            Apply Filters
+          </button>
         </div>
       </div>
     </div>
@@ -169,6 +171,11 @@ function exportCSV() {
 
 function exportPDF() {
   exportInvoicesToPDF({ ...filters.value, q: q.value })
+}
+
+function logout() {
+  sessionStorage.removeItem('session_expires')
+  router.push('/login')
 }
 
 onMounted(load)
