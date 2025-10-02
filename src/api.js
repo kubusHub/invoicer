@@ -9,8 +9,6 @@ import Papa from 'papaparse'
  * If month provided, treats as date_start/end for that month and returns summary
  */
 export async function fetchInvoices(filters = {}) {
-
-
   let query = supabase
     .from('invoices')
     .select('*', { count: 'exact' })
@@ -62,7 +60,14 @@ export async function fetchInvoices(filters = {}) {
     const paid = full.filter((inv) => inv.status === 'Paid').length
     const unpaid = full.filter((inv) => inv.status === 'Unpaid').length
     const totalBrutto = full.reduce((sum, inv) => sum + (inv.brutto || 0), 0)
-    summary = { total, paid, unpaid, totalBrutto }
+    const totalNetto = full.reduce((sum, inv) => sum + (inv.netto || 0), 0)
+    const totalPaidBrutto = full
+      .filter((inv) => inv.status === 'Paid')
+      .reduce((sum, inv) => sum + (inv.brutto || 0), 0)
+    const totalUnpaidBrutto = full
+      .filter((inv) => inv.status === 'Unpaid')
+      .reduce((sum, inv) => sum + (inv.brutto || 0), 0)
+    summary = { total, paid, unpaid, totalBrutto, totalNetto, totalPaidBrutto, totalUnpaidBrutto }
   }
 
   // Pagination
@@ -186,12 +191,26 @@ export async function fetchMonthlySummary() {
   data.forEach((inv) => {
     const m = dayjs(inv.data_wystawienia).format('YYYY-MM')
     if (!groups[m]) {
-      groups[m] = { total: 0, paid: 0, unpaid: 0, totalBrutto: 0 }
+      groups[m] = {
+        total: 0,
+        paid: 0,
+        unpaid: 0,
+        totalBrutto: 0,
+        totalNetto: 0,
+        totalPaidBrutto: 0,
+        totalUnpaidBrutto: 0,
+      }
     }
     groups[m].total++
-    if (inv.status === 'Paid') groups[m].paid++
-    else if (inv.status === 'Unpaid') groups[m].unpaid++
+    if (inv.status === 'Paid') {
+      groups[m].paid++
+      groups[m].totalPaidBrutto += inv.brutto || 0
+    } else if (inv.status === 'Unpaid') {
+      groups[m].unpaid++
+      groups[m].totalUnpaidBrutto += inv.brutto || 0
+    }
     groups[m].totalBrutto += inv.brutto || 0
+    groups[m].totalNetto += inv.netto || 0
   })
   return Object.entries(groups)
     .map(([month, s]) => ({ month, ...s }))

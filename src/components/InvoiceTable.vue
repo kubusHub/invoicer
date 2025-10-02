@@ -5,11 +5,13 @@
         <tr>
           <th>NIP</th>
           <th>Firma</th>
-          <th>Numer</th>
+          <th>Numer FV</th>
           <th>Data</th>
           <th>Netto</th>
           <th>VAT%</th>
           <th>Brutto</th>
+          <th>Tytuł przelewu</th>
+          <th>Nr konta</th>
           <th>Status</th>
           <th>Preview</th>
           <th>Download</th>
@@ -18,27 +20,15 @@
       </thead>
       <tbody>
         <tr v-for="inv in invoices" :key="inv.id">
-          <td
-            v-if="editing[inv.id]"
-            contenteditable
-            @blur="updateField(inv, 'nip', $event.target.textContent)"
-          >
-            {{ inv.nip }}
-          </td>
-          <td v-else @dblclick="startEdit(inv, 'nip')">{{ inv.nip }}</td>
-          <td
-            v-if="editing[inv.id]"
-            contenteditable
-            @blur="updateField(inv, 'firma', $event.target.textContent)"
-          >
-            {{ inv.firma }}
-          </td>
-          <td v-else @dblclick="startEdit(inv, 'firma')">{{ inv.firma }}</td>
+          <td>{{ inv.nip }}</td>
+          <td>{{ inv.firma }}</td>
           <td>{{ inv.numer_faktury }}</td>
           <td>{{ inv.data_wystawienia }}</td>
           <td>{{ format(inv.netto) }}</td>
           <td>{{ inv.vat_percentage }}</td>
           <td>{{ format(inv.brutto) }}</td>
+          <td>{{ inv.tytul_przelewu }}</td>
+          <td>{{ inv.numer_rachunku }}</td>
           <td>
             <select v-model="inv.status" @change="onStatusChange(inv)">
               <option>Unpaid</option>
@@ -74,12 +64,11 @@
 
 <script setup>
 import { ref, defineProps, defineEmits, computed } from 'vue'
-import { updateStatus, updateInvoice, deleteInvoice as apiDeleteInvoice } from '../api'
+import { updateStatus, deleteInvoice as apiDeleteInvoice } from '../api'
 
 const props = defineProps({ invoices: Array })
 const emit = defineEmits(['refresh'])
 
-const editing = ref({})
 const sortField = ref('data_wystawienia')
 const sortOrder = ref('desc')
 const selected = ref([])
@@ -101,21 +90,6 @@ function sortBy(field) {
     sortOrder.value = 'asc'
   }
   // Note: Sorting is handled in fetchInvoices
-}
-
-function startEdit(inv, field) {
-  editing.value[inv.id] = true
-}
-
-async function updateField(inv, field, value) {
-  try {
-    await updateInvoice(inv.id, { [field]: value })
-    inv[field] = value
-    delete editing.value[inv.id]
-    emit('refresh')
-  } catch (e) {
-    alert('Failed to update: ' + e.message)
-  }
 }
 
 async function onStatusChange(inv) {
