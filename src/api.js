@@ -3,121 +3,13 @@ import { supabase } from './supabase'
 import dayjs from 'dayjs'
 import Papa from 'papaparse'
 
-// Mock data for testing
-const mockInvoices = [
-  {
-    id: 1,
-    nip: '1234567890',
-    firma: 'Test Firma 1',
-    numer_faktury: 'FV/001/2023',
-    data_wystawienia: '2023-10-01',
-    brutto: 1000.0,
-    netto: 800.0,
-    tytul_przelewu: 'Payment for services',
-    numer_rachunku: 'PL12345678901234567890123456',
-    status: 'Unpaid',
-    webview_link: 'https://drive.google.com/file/d/mock1/view',
-    download_link: 'https://drive.google.com/uc?export=download&id=mock1',
-    file_id: 'mock1',
-    vat_percentage: 23.0,
-    vat_value: 200.0,
-    created_at: '2023-10-01T00:00:00Z',
-    updated_at: '2023-10-01T00:00:00Z',
-  },
-  {
-    id: 2,
-    nip: '0987654321',
-    firma: 'Test Firma 2',
-    numer_faktury: 'FV/002/2023',
-    data_wystawienia: '2023-10-15',
-    brutto: 1500.0,
-    netto: 1200.0,
-    status: 'Paid',
-    webview_link: 'https://drive.google.com/file/d/mock2/view',
-    download_link: 'https://drive.google.com/uc?export=download&id=mock2',
-    file_id: 'mock2',
-    vat_percentage: 25.0,
-    vat_value: 300.0,
-    created_at: '2023-10-15T00:00:00Z',
-    updated_at: '2023-10-15T00:00:00Z',
-  },
-]
-
-const useMock = !import.meta.env.VITE_SUPABASE_URL // Use mock if no env
-
 /**
  * Fetch invoices with optional filters and pagination.
  * filters = { date_start, date_end, nip, firma, status, q, page, limit, sortBy, sortOrder } where q is text search
  * If month provided, treats as date_start/end for that month and returns summary
  */
 export async function fetchInvoices(filters = {}) {
-  if (useMock) {
-    let data = [...mockInvoices]
 
-    // Filter by date range
-    if (filters.date_start) {
-      const start = dayjs(filters.date_start)
-      data = data.filter((inv) => dayjs(inv.data_wystawienia).isSameOrAfter(start, 'day'))
-    }
-    if (filters.date_end) {
-      const end = dayjs(filters.date_end).endOf('day')
-      data = data.filter((inv) => dayjs(inv.data_wystawienia).isSameOrBefore(end, 'day'))
-    }
-    // Backward compat for month
-    if (filters.month) {
-      const start = dayjs(filters.month + '-01').startOf('month')
-      const end = dayjs(filters.month + '-01').endOf('month')
-      data = data.filter((inv) => dayjs(inv.data_wystawienia).isBetween(start, end, null, '[]'))
-    }
-
-    if (filters.nip) data = data.filter((inv) => inv.nip === filters.nip)
-    if (filters.firma)
-      data = data.filter((inv) => inv.firma.toLowerCase().includes(filters.firma.toLowerCase()))
-    if (filters.numer_faktury)
-      data = data.filter((inv) =>
-        inv.numer_faktury.toLowerCase().includes(filters.numer_faktury.toLowerCase()),
-      )
-    if (filters.status) data = data.filter((inv) => inv.status === filters.status)
-    if (filters.brutto_min) data = data.filter((inv) => (inv.brutto || 0) >= filters.brutto_min)
-    if (filters.brutto_max) data = data.filter((inv) => (inv.brutto || 0) <= filters.brutto_max)
-
-    if (filters.q) {
-      const q = filters.q.toLowerCase()
-      data = data.filter(
-        (inv) =>
-          inv.nip.toLowerCase().includes(q) ||
-          inv.firma.toLowerCase().includes(q) ||
-          inv.numer_faktury.toLowerCase().includes(q),
-      )
-    }
-
-    // Sort
-    const sortBy = filters.sortBy || 'data_wystawienia'
-    const sortOrder = filters.sortOrder === 'asc' ? 1 : -1
-    data.sort((a, b) => {
-      if (a[sortBy] < b[sortBy]) return -sortOrder
-      if (a[sortBy] > b[sortBy]) return sortOrder
-      return 0
-    })
-
-    // If month or date range, compute summary from full data
-    let summary = {}
-    if (filters.month || (filters.date_start && filters.date_end)) {
-      const total = data.length
-      const paid = data.filter((inv) => inv.status === 'Paid').length
-      const unpaid = data.filter((inv) => inv.status === 'Unpaid').length
-      const totalBrutto = data.reduce((sum, inv) => sum + (inv.brutto || 0), 0)
-      summary = { total, paid, unpaid, totalBrutto }
-    }
-
-    // Pagination
-    const page = filters.page || 1
-    const limit = filters.limit || 50
-    const from = (page - 1) * limit
-    const paginated = data.slice(from, from + limit)
-
-    return { data: paginated, count: data.length, summary }
-  }
 
   let query = supabase
     .from('invoices')
@@ -185,15 +77,6 @@ export async function fetchInvoices(filters = {}) {
 }
 
 export async function updateStatus(id, newStatus) {
-  if (useMock) {
-    const inv = mockInvoices.find((i) => i.id == id)
-    if (inv) {
-      inv.status = newStatus
-      inv.updated_at = new Date().toISOString()
-      return [inv]
-    }
-    throw new Error('Invoice not found')
-  }
   const { data, error } = await supabase
     .from('invoices')
     .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -204,14 +87,6 @@ export async function updateStatus(id, newStatus) {
 }
 
 export async function updateInvoice(id, changes) {
-  if (useMock) {
-    const inv = mockInvoices.find((i) => i.id == id)
-    if (inv) {
-      Object.assign(inv, changes, { updated_at: new Date().toISOString() })
-      return [inv]
-    }
-    throw new Error('Invoice not found')
-  }
   const { data, error } = await supabase
     .from('invoices')
     .update({ ...changes, updated_at: new Date().toISOString() })
@@ -222,44 +97,18 @@ export async function updateInvoice(id, changes) {
 }
 
 export async function createInvoice(invoice) {
-  if (useMock) {
-    const newId = Math.max(...mockInvoices.map((i) => i.id)) + 1
-    const newInvoice = {
-      ...invoice,
-      id: newId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-    mockInvoices.push(newInvoice)
-    return [newInvoice]
-  }
   const { data, error } = await supabase.from('invoices').insert([invoice]).select()
   if (error) throw error
   return data
 }
 
 export async function deleteInvoice(id) {
-  if (useMock) {
-    const index = mockInvoices.findIndex((i) => i.id == id)
-    if (index > -1) {
-      mockInvoices.splice(index, 1)
-      return true
-    }
-    throw new Error('Invoice not found')
-  }
   const { error } = await supabase.from('invoices').delete().eq('id', id)
   if (error) throw error
   return true
 }
 
 export async function bulkDeleteInvoices(ids) {
-  if (useMock) {
-    ids.forEach((id) => {
-      const index = mockInvoices.findIndex((i) => i.id == id)
-      if (index > -1) mockInvoices.splice(index, 1)
-    })
-    return true
-  }
   const { error } = await supabase.from('invoices').delete().in('id', ids)
   if (error) throw error
   return true
@@ -295,15 +144,6 @@ export async function exportInvoicesToPDF(filters = {}) {
 }
 
 export async function fetchReports() {
-  if (useMock) {
-    return {
-      totalInvoices: mockInvoices.length,
-      totalPaid: mockInvoices.filter((i) => i.status === 'Paid').length,
-      totalUnpaid: mockInvoices.filter((i) => i.status === 'Unpaid').length,
-      totalBrutto: mockInvoices.reduce((sum, i) => sum + (i.brutto || 0), 0),
-      monthlyData: [{ month: '2023-10', total: 2, paid: 1, unpaid: 1, totalBrutto: 2500 }],
-    }
-  }
   // For real, compute from database
   const { data, error } = await supabase.from('invoices').select('*')
   if (error) throw error
@@ -336,23 +176,6 @@ export async function signOut() {
 }
 
 export async function fetchMonthlySummary() {
-  if (useMock) {
-    const groups = {}
-    mockInvoices.forEach((inv) => {
-      const m = dayjs(inv.data_wystawienia).format('YYYY-MM')
-      if (!groups[m]) {
-        groups[m] = { total: 0, paid: 0, unpaid: 0, totalBrutto: 0 }
-      }
-      groups[m].total++
-      if (inv.status === 'Paid') groups[m].paid++
-      else if (inv.status === 'Unpaid') groups[m].unpaid++
-      groups[m].totalBrutto += inv.brutto || 0
-    })
-    return Object.entries(groups)
-      .map(([month, s]) => ({ month, ...s }))
-      .sort((a, b) => b.month.localeCompare(a.month))
-  }
-
   // For real, fetch all and group (small dataset)
   const { data, error } = await supabase
     .from('invoices')
