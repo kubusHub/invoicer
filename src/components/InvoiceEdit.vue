@@ -1,74 +1,117 @@
 <!-- src/components/InvoiceEdit.vue -->
 <template>
-  <div>
+  <div class="container mt-4">
     <div class="mb-3">
       <button class="btn btn-secondary" @click="$router.push('/')">
-        <i class="bi bi-arrow-left"></i>
+        <i class="bi bi-arrow-left"></i> Back
       </button>
     </div>
-    <h2>Edit Invoice</h2>
-    <form @submit.prevent="save" v-if="invoice">
-      <div>
-        <label>NIP</label>
-        <input v-model="invoice.nip" required />
-        <span v-if="errors.nip">{{ errors.nip }}</span>
+    <h2 class="mb-4">Edit Invoice</h2>
+    <form @submit.prevent="save" v-if="invoice" class="row g-3">
+      <div class="col-md-6">
+        <label for="nip" class="form-label">NIP</label>
+        <input id="nip" v-model="invoice.nip" class="form-control" required />
+        <div v-if="errors.nip" class="text-danger">{{ errors.nip }}</div>
       </div>
-      <div>
-        <label>Firma</label>
-        <input v-model="invoice.firma" required />
-        <span v-if="errors.firma">{{ errors.firma }}</span>
+      <div class="col-md-6">
+        <label for="firma" class="form-label">Firma</label>
+        <input id="firma" v-model="invoice.firma" class="form-control" required />
+        <div v-if="errors.firma" class="text-danger">{{ errors.firma }}</div>
       </div>
-      <div>
-        <label>Numer Faktury</label>
-        <input v-model="invoice.numer_faktury" required />
+      <div class="col-md-6">
+        <label for="numer_faktury" class="form-label">Numer Faktury</label>
+        <input id="numer_faktury" v-model="invoice.numer_faktury" class="form-control" required />
       </div>
-      <div>
-        <label>Data Wystawienia</label>
-        <input v-model="invoice.data_wystawienia" type="date" required />
+      <div class="col-md-6">
+        <label for="data_wystawienia" class="form-label">Data Wystawienia</label>
+        <input
+          id="data_wystawienia"
+          v-model="invoice.data_wystawienia"
+          type="date"
+          class="form-control"
+          required
+        />
       </div>
-      <div>
-        <label>Netto</label>
-        <input v-model.number="invoice.netto" type="number" step="0.01" required />
+      <div class="col-md-4">
+        <label for="netto" class="form-label">Netto</label>
+        <input
+          id="netto"
+          v-model.number="invoice.netto"
+          type="number"
+          step="0.01"
+          class="form-control"
+          required
+        />
       </div>
-      <div>
-        <label>VAT %</label>
-        <input v-model.number="invoice.vat_percentage" type="number" step="0.01" />
+      <div class="col-md-4">
+        <label for="vat_percentage" class="form-label">VAT %</label>
+        <input
+          id="vat_percentage"
+          v-model.number="invoice.vat_percentage"
+          type="number"
+          step="0.01"
+          class="form-control"
+        />
       </div>
-      <div>
-        <label>Brutto</label>
-        <input v-model.number="invoice.brutto" type="number" step="0.01" required />
+      <div class="col-md-4">
+        <label for="brutto" class="form-label">Brutto</label>
+        <input
+          id="brutto"
+          v-model.number="invoice.brutto"
+          type="number"
+          step="0.01"
+          class="form-control"
+          required
+        />
       </div>
-      <div>
-        <label>Status</label>
-        <select v-model="invoice.status" required>
+      <div class="col-md-6">
+        <label for="status" class="form-label">Status</label>
+        <select id="status" v-model="invoice.status" class="form-select" required>
           <option>Unpaid</option>
           <option>Paid</option>
           <option>Partially Paid</option>
         </select>
       </div>
-      <div>
-        <label>Tytul Przelewu</label>
-        <input v-model="invoice.tytul_przelewu" />
+      <div class="col-md-6">
+        <label for="tytul_przelewu" class="form-label">Tytul Przelewu</label>
+        <input id="tytul_przelewu" v-model="invoice.tytul_przelewu" class="form-control" />
       </div>
-      <div>
-        <label>Numer Rachunku</label>
-        <input v-model="invoice.numer_rachunku" />
+      <div class="col-md-6">
+        <label for="numer_rachunku" class="form-label">Numer Rachunku</label>
+        <input id="numer_rachunku" v-model="invoice.numer_rachunku" class="form-control" />
       </div>
-      <div>
-        <label>File ID</label>
-        <input v-model="invoice.file_id" />
+      <div class="col-md-6">
+        <label for="file_id" class="form-label">File ID</label>
+        <input id="file_id" v-model="invoice.file_id" class="form-control" />
       </div>
-      <div style="margin-top: 8px">
-        <button type="submit">Save</button>
-        <a :href="invoice.webview_link" target="_blank" rel="noopener noreferrer"
-          ><i class="bi bi-eye"></i
-        ></a>
-        <a :href="invoice.download_link" target="_blank" rel="noopener noreferrer"
-          ><i class="bi bi-download"></i
-        ></a>
+      <div class="col-12 mt-4">
+        <button type="submit" class="btn btn-primary me-2">Save</button>
+        <a
+          v-if="invoice.webview_link"
+          :href="invoice.webview_link"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-outline-info me-2"
+        >
+          <i class="bi bi-eye"></i> View
+        </a>
+        <a
+          v-if="invoice.download_link"
+          :href="invoice.download_link"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-outline-success"
+        >
+          <i class="bi bi-download"></i> Download
+        </a>
       </div>
     </form>
-    <div v-else>Loading...</div>
+    <div v-else class="text-center mt-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Loading invoice...</p>
+    </div>
   </div>
 </template>
 
