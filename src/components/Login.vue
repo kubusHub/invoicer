@@ -51,7 +51,7 @@ function onSubmit() {
   const hardcodedCode = '777666555444333222111'
   if (accessCode.value === hardcodedCode) {
     const expires = Date.now() + 30 * 60 * 1000 // 30 minutes
-    sessionStorage.setItem('session_expires', expires.toString())
+    localStorage.setItem('session_expires', expires.toString())
     router.push('/')
   } else {
     err.value = 'Invalid access code. Please try again.'

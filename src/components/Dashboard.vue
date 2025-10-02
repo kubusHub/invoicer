@@ -174,7 +174,7 @@ function exportPDF() {
 }
 
 function logout() {
-  sessionStorage.removeItem('session_expires')
+  localStorage.removeItem('session_expires')
   router.push('/login')
 }
 

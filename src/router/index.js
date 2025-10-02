@@ -24,7 +24,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  const sessionExpires = sessionStorage.getItem('session_expires')
+  const sessionExpires = localStorage.getItem('session_expires')
   const isLoggedIn = sessionExpires && parseInt(sessionExpires) > Date.now()
   if (!isLoggedIn && to.name !== 'Login') {
     next('/login')
